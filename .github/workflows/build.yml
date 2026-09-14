@@ -1,0 +1,44 @@
+name: Compilar SnoreGuard
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Descomprimir el proyecto
+        run: unzip -oq SnoreGuard.zip
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Configurar el SDK de Android
+        uses: android-actions/setup-android@v3
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.2"
+
+      - name: Compilar APK de depuración
+        working-directory: SnoreGuard
+        run: gradle assembleDebug
+
+      - name: Subir el APK como resultado descargable
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SnoreGuard-debug-apk
+          path: SnoreGuard/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
